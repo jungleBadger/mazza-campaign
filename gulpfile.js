@@ -327,11 +327,15 @@
 
 
 	gulp.task("set-manifest", function (done) {
-		methods.setCFManifest().then(function () {
+		if (isBluemix) {
+			methods.setCFManifest().then(function () {
+				done();
+			}).catch(function (error) {
+				methods.errorHandler("set-manifest", error, "Check the logs to see where it fails");
+			});
+		} else {
 			done();
-		}).catch(function (error) {
-			methods.errorHandler("set-manifest", error, "Check the logs to see where it fails");
-		});
+		}
 	});
 
 	gulp.task("notifyBuildSuccess", function () {
