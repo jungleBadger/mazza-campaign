@@ -3,15 +3,15 @@ deploy:
   provider: heroku
   skip_cleanup: true
   api_key:
-    secure: CLylhweyJT3ecbN/AK6jADznIIAjpB9+itG3JoHN/mZmnmI+hbwkKoYbmPFiYseIi7He9wyy01Pz/97DkNgVjYjNjzO4Uq/+vixxcaowrl67ewNbkhEStUgNV270hSX+4ZyRmn0uShkJ/AtXQdfTml9SNuKoU2DL5r8Y06orcPhQiL6ytOj9y0pUtGsFMRKsdyY02XNEkHQ4lDUHRgjv5hx0xpLrHqqJLW8fxxkjDPFMx5EzGiSrQDZ31dowzrESYi0nNE6jfOb80ae3pvhEqrLa88T1eN4+OIHncxt1mKGrhrYFdGx0RFmHmRclPZEMSedBLAa+HYY7ybSwYxmyMdoQ1N5FQ7fmer6raiJM24mLYna5AT5GB/Hh18Gc5pit/dNIUI0Fxmuagg1qrQh0NsZPnwW1K52T0kPAzDMF6wKUrl2WU7LC1ep8kegENtirA7ihRzQ4RJrti2nZ1JD1BPS6eQcYucZhKCIFk1h4VgCRJxmiFnsPkAtoOwytxf0fnG6GlKK3fH3RSKnDcTyWo548r6SK8/mJrzQURAP+TkkRd7SCdusNEp610mobERgTiy1dS//uM/43EME/aYuUDWw7Lm5fvge8nU7MTeE8IkDUoSwn4drjtWHf7LkwiNaLaPyWXQWD2nr8yu8Nbjr6iiqbEVEBuFJvWE1pOc9Kxsg=
+    secure: KKhxIkI29Sh/pAlXI1r3SLxGPye+dqXHGjPjGULCZN2IGxpcCdwWQPJjGgt2F+mvfBx6mkBn5/b/GK9pEl88b2+7BTS7W0Avm0Tp+iDIyrZ+7ozm7gmfm/52S6xE6SfbCoVQrgejH5MJ+k0j0kWMlwcB+KRwMI3fbKFnB+FdrFvLZfnR8eyd1rwk82ICd1AHeyOG4xVkqi4F1AJEXB08eO8305og5kURg3ejFVIDYyT8RHkNGKgf+qAsQziLZrbE+tT3rcRHOv3qBkC0yCV4o58qMOmz7eBMssJrSF5xNzqeKPalHhfbROPgSEn8OIAF/79K0q9Pb773Gc2I+zu15xvn6MLMjl8zIZhr5RMW6oO+QxJly6T5TDffeZdkPWAhBj0Ttgkrq6W858bxghcfZeaEuI42OCF0am0DwSJfZn21Aed5BKyViinL3COcPs/FR/kVNFFHpA9d84fBuHulvxpiSkEonm8eAlUrCoEim9mQ1gKTiyHYJi9EiyVsu8azKhLRNwGUYPOGpFtqMXzb89SG62flfVmyKa+KtZ72lIzwKBbo+b7xWkmf3OY0JP/V0rmCHiwPjF1XmE+wEP84tyIZcrNZEKUq8Jx7Ie68zqPe7+r8TKMT//j5j1CVE4OkdtnjTnmVSl+51TpSqILEmASEwVgmaHGVvKJeSpb9V5M=
   app:
-    beta: mazza-campaign
-    master: mazza-cp
+    beta: mazza-campaign-dev
+    master: mazza-campaign
 language: node_js
 node_js:
 - stable
 before_install:
 - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
 - npm config set @fortawesome:registry https://npm.fontawesome.com/${FA_KEY}
-after_install:
+after_success:
 - sh ./root/travis-build.sh
