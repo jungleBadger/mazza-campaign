@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+npm install express helmet morgan body-parser cookie-parser cookie-session passport compression consolidate ejs envify winston winston-daily-rotate-file request http-errors dotenv cross-env bcrypt --save

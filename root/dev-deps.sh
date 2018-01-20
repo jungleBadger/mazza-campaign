@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+npm install gulp mocha chai chai-as-promised babel-plugin-transform babel-preset-es2015 babel-runtime izitoast promise-polifyll node-sass bulma vue-template-compiler istanbul nyc sw-precache nsp yargs gulp-babel gulp-watch gulp-browserify gulp-image-resize browserify fs-extra gulp-uglify gulp-rename gulp-plumber gulp-imagemin gulp-cache gulp-postcss gulp-eslint eslint-plugin-vue watchify gulp-cond gulp-util gulp-sourcemaps babel-core babelify gulp-envify vueify vinyl-buffer vinyl-source-stream run-sequence cssnano postcss-cssnext node-fetch --save-dev
