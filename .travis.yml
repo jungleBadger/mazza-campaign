@@ -11,5 +11,6 @@ language: node_js
 node_js:
 - stable
 before_install:
+- npm config set @fortawesome:registry:_authToken $NPM_TOKEN
 - npm install
 - gulp build-all
