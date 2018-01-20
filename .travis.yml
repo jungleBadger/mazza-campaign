@@ -1,0 +1,15 @@
+sudo: required
+deploy:
+  provider: heroku
+  skip_cleanup: true
+  api_key:
+    secure: CLylhweyJT3ecbN/AK6jADznIIAjpB9+itG3JoHN/mZmnmI+hbwkKoYbmPFiYseIi7He9wyy01Pz/97DkNgVjYjNjzO4Uq/+vixxcaowrl67ewNbkhEStUgNV270hSX+4ZyRmn0uShkJ/AtXQdfTml9SNuKoU2DL5r8Y06orcPhQiL6ytOj9y0pUtGsFMRKsdyY02XNEkHQ4lDUHRgjv5hx0xpLrHqqJLW8fxxkjDPFMx5EzGiSrQDZ31dowzrESYi0nNE6jfOb80ae3pvhEqrLa88T1eN4+OIHncxt1mKGrhrYFdGx0RFmHmRclPZEMSedBLAa+HYY7ybSwYxmyMdoQ1N5FQ7fmer6raiJM24mLYna5AT5GB/Hh18Gc5pit/dNIUI0Fxmuagg1qrQh0NsZPnwW1K52T0kPAzDMF6wKUrl2WU7LC1ep8kegENtirA7ihRzQ4RJrti2nZ1JD1BPS6eQcYucZhKCIFk1h4VgCRJxmiFnsPkAtoOwytxf0fnG6GlKK3fH3RSKnDcTyWo548r6SK8/mJrzQURAP+TkkRd7SCdusNEp610mobERgTiy1dS//uM/43EME/aYuUDWw7Lm5fvge8nU7MTeE8IkDUoSwn4drjtWHf7LkwiNaLaPyWXQWD2nr8yu8Nbjr6iiqbEVEBuFJvWE1pOc9Kxsg=
+  app:
+    beta: mazza-campaign
+    master: mazza-cp
+language: node_js
+node_js:
+- stable
+before_install:
+- npm install
+- gulp build-all

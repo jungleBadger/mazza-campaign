@@ -3,11 +3,16 @@
 	"version": "1.0.0",
 	"description": "Market survey creation application",
 	"main": "app.js",
+	"engines": {
+		"node": "8.9.4",
+		"npm": "5.6.0"
+	},
 	"directories": {
 		"test": "test"
 	},
 	"scripts": {
-		"test": "mocha test -t 20000"
+		"test": "mocha test -t 20000",
+		"start": "node app.js"
 	},
 	"author": "dcerag",
 	"license": "ISC",
