@@ -30,7 +30,7 @@
 					cachedDb = "";
 				});
 			},
-			"find": function (db, collection, params = {}) {
+			"find": function (db = cachedDb, collection, params = {}) {
 				return new Promise((resolve, reject) => {
 					if (!db || !collection) {
 						reject(createError(400, "Invalid params"));
@@ -46,7 +46,20 @@
 					});
 				});
 			},
-			"insertOne": function (db, collection, doc) {
+			"findOne": function (db = cachedDb, collection, params) {
+				return new Promise((resolve, reject) => {
+					if (!db || !collection) {
+						reject(createError(400, "Invalid params"));
+					}
+					let base = db.collection(collection);
+					base.findOne(params.query, {
+						"projection": params.projection || null
+					}, (err, data) => {
+						return err ? reject(err) : resolve(data);
+					});
+				});
+			},
+			"insertOne": function (db = cachedDb, collection, doc) {
 				return new Promise((resolve, reject) => {
 					if (!db || !collection || !doc) {
 						reject(createError(400, "Invalid params"));
