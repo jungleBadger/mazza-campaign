@@ -3,7 +3,7 @@
 		<app-header></app-header>
 		<app-sidemenu></app-sidemenu>
 		<div class="content">
-			<router-view class="view"></router-view>
+			<router-view class="view" />
 		</div>
 	</div>
 </template>
@@ -20,8 +20,8 @@
 				}
 			},
 			"components": {
-				"AppHeader": require("./header.vue"),
-				"AppSidemenu": require("./sidemenu.vue")
+				"AppHeader": require("./app-header.vue"),
+				"AppSidemenu": require("./app-sidemenu.vue")
 
 			},
 			"methods": {
