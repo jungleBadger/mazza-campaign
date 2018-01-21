@@ -8,7 +8,7 @@
 		const chaiAsPromised = require("chai-as-promised");
 		chai.use(chaiAsPromised);
 		chai.should();
-		const Logger = require("../../../server/helpers/logger");
+		const Mongo = require("../../../server/helpers/mongo");
 		const createError = require("http-errors");
 
 		describe("Logger helper package", () => {
@@ -16,21 +16,25 @@
 			});
 
 			context("Valid instantiation", () => {
-				const logger = new Logger();
+				const mongoInstance = new Mongo();
 				it("should export an object", function() {
-					assert.equal(typeof logger, "object");
+					assert.equal(typeof mongoInstance, "object");
 				});
 
-				it("should expose an error method", function() {
-					assert.equal(typeof logger.error, "function");
+				it("should expose an connect method", function() {
+					assert.equal(typeof mongoInstance.connect, "function");
 				});
 
-				it("should expose an info method", function() {
-					assert.equal(typeof logger.info, "function");
+				it("should expose an disconnect method", function() {
+					assert.equal(typeof mongoInstance.disconnect, "function");
 				});
 
-				it("should expose a getErrorLogs method", function() {
-					assert.equal(typeof logger.getErrorLogs, "function");
+				it("should expose a insertOne method", function() {
+					assert.equal(typeof mongoInstance.insertOne, "function");
+				});
+
+				it("should expose a find method", function() {
+					assert.equal(typeof mongoInstance.find, "function");
 				});
 
 				describe("error method", () => {

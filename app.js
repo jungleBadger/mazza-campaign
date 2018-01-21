@@ -7,8 +7,8 @@
 		"silent": true
 	});
 
-	const fs = require("fs");
 	const appPort = process.env.APP_PORT || process.env.PORT || process.env.VCAP_APP_PORT || 6050;
+	const fs = require("fs");
 	const express = require("express");
 	const request = require("request");
 	const helmet = require("helmet");
@@ -25,7 +25,6 @@
 	} else {
 		server = require("http").createServer(app);
 	}
-
 	const cookieSession = require("cookie-session");
 	const cookieParser = require("cookie-parser");
 	const passport = require("passport");
@@ -33,7 +32,8 @@
 	const engines = require("consolidate");
 	const morgan = require("morgan");
 	const bodyParser = require("body-parser");
-	const logger = require("./server/helpers/logger")();
+	const Logger = require("./server/helpers/logger");
+	let logger = new Logger();
 
 	app.use(helmet());
 	app.use(compress());
@@ -66,10 +66,12 @@
 		"limit": "10mb"
 	}));
 
-	app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
+	if (process.env.DEBUG) {
+		app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
+	}
 
 	server.listen(appPort, function () {
-		logger.info(["Server running on port:", appPort, "\n"].join(" "));
+		logger.info(`Server running on port: ${appPort}`);
 		require("./server/routes/index")(app, request);
 	});
 
