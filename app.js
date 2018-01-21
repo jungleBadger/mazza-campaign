@@ -8,7 +8,7 @@
 	});
 
 	const fs = require("fs");
-	const appPort = process.env.APP_PORT || process.env.VCAP_APP_PORT || 9006;
+	const appPort = process.env.APP_PORT || process.env.PORT || process.env.VCAP_APP_PORT || 6050;
 	const express = require("express");
 	const request = require("request");
 	const helmet = require("helmet");
