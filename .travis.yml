@@ -15,3 +15,8 @@ before_install:
 - npm config set @fortawesome:registry https://npm.fontawesome.com/${FA_KEY}
 after_success:
 - bash ./root/travis-build.sh
+branches:
+  only:
+  - master
+  - beta
+
