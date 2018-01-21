@@ -8,10 +8,10 @@
 		const chaiAsPromised = require("chai-as-promised");
 		chai.use(chaiAsPromised);
 		chai.should();
-		const Users = require("../../../server/helpers/users");
+		const Users = require("../../../server/helpers/campaignUsers");
 		const createError = require("http-errors");
 
-		describe("Logger helper package", () => {
+		describe("CampaignUsers helper package", () => {
 			context("Valid instantiation", () => {
 				const users = new Users();
 				it("should export an object", function() {

@@ -11,7 +11,8 @@
 	describe("App instantiation", function () {
 		require("./server/helpers/mongo-test")();
 		require("./server/helpers/logger-test")();
-		require("./server/helpers/users-test")();
+		require("./server/helpers/campaigns-test")();
+		require("./server/helpers/campaignUsers-test")();
 	});
 
 

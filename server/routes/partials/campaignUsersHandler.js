@@ -1,7 +1,7 @@
 (function () {
 	"use strict";
 
-	const users = new require("../../helpers/users")();
+	const users = new require("../../helpers/campaignUsers")();
 
 	module.exports = function (app) {
 		app.post("/createCampaignUser", function (req, res) {

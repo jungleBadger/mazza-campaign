@@ -11,7 +11,7 @@
 		const Mongo = require("../../../server/helpers/mongo");
 		const createError = require("http-errors");
 
-		describe("Logger helper package", () => {
+		describe("Mongo helper package", () => {
 			context("Invalid instantiation", () => {
 			});
 
