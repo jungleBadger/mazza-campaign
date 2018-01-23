@@ -3,8 +3,9 @@
 
 
 	const MONGO_STRING = require("../configs/mongo-string");
-	const MONGO_DB = process.env.MONGO_DB;
+	const MONGO_DB = process.env.TEST_ENV || process.env === "TEST" ? process.env.MONGO_TEST_DB : process.env.MONGO_DB;
 	const MongoClient = require("mongodb").MongoClient;
+	const ObjectId = require("mongodb").ObjectId;
 	const createError = require("http-errors");
     module.exports = function () {
 		let cachedDb = "";
@@ -25,10 +26,12 @@
 					});
 				});
 			},
-			"disconnect": function (client) {
-				return client.close(() => {
-					cachedDb = "";
-				});
+			"disconnect": function (client = {}) {
+				if (client && client.close) {
+					return client.close(() => {
+						cachedDb = "";
+					});
+				}
 			},
 			"find": function (db = cachedDb, collection, params = {}) {
 				return new Promise((resolve, reject) => {
@@ -48,11 +51,11 @@
 			},
 			"findOne": function (db = cachedDb, collection, params) {
 				return new Promise((resolve, reject) => {
-					if (!db || !collection) {
+					if (!db || !collection || !params) {
 						reject(createError(400, "Invalid params"));
 					}
 					let base = db.collection(collection);
-					base.findOne(params.query, {
+					base.findOne(params.query,  {
 						"projection": params.projection || null
 					}, (err, data) => {
 						return err ? reject(err) : resolve(data);
@@ -66,10 +69,24 @@
 					}
 					let base = db.collection(collection);
 					base.insertOne(doc, null, (err, data) => {
-						return err ? reject(err) : resolve(data);
+						return err ? reject(err) : resolve(data.insertedId);
 					});
 				});
-			}
+			},
+			"deleteOneById": function (db = cachedDb, collection, docId) {
+				return new Promise((resolve, reject) => {
+					if (!db || !collection || !docId) {
+						reject(createError(400, "Invalid params"));
+					}
+					let base = db.collection(collection);
+					base.deleteOne({
+						"_id": this.ObjectId(docId)
+					}, null, (err, data) => {
+						return err ? reject(err) : resolve(data.deletedCount);
+					});
+				});
+			},
+			"ObjectId": ObjectId
 		};
 
 	}
