@@ -1,11 +1,11 @@
 (function (process) {
 	"use strict";
+	process.env.TEST_ENV = true;
 
 	require("dotenv").config({
 		"silent": true
 	});
 
-	process.env.TEST_ENV = true;
 	process.log = require("winston");
 
 	describe("App instantiation", function () {

@@ -8,6 +8,7 @@
 		const chaiAsPromised = require("chai-as-promised");
 		chai.use(chaiAsPromised);
 		chai.should();
+		const ObjectId = require("mongodb").ObjectId;
 		const Mongo = require("../../../server/helpers/mongo");
 		const createError = require("http-errors");
 
@@ -29,25 +30,51 @@
 					assert.equal(typeof mongoInstance.disconnect, "function");
 				});
 
-				it("should expose a insertOne method", function() {
-					assert.equal(typeof mongoInstance.insertOne, "function");
-				});
-
 				it("should expose a find method", function() {
 					assert.equal(typeof mongoInstance.find, "function");
 				});
 
-				describe("error method", () => {
+				it("should expose a findOne method", function() {
+					assert.equal(typeof mongoInstance.findOne, "function");
+				});
+
+				it("should expose a insertOne method", function() {
+					assert.equal(typeof mongoInstance.insertOne, "function");
+				});
+
+				it("should expose a deleteOneById method", function() {
+					assert.equal(typeof mongoInstance.deleteOneById, "function");
+				});
+
+				it("should expose a ObjectId property", function() {
+					assert.deepEqual(mongoInstance.ObjectId, ObjectId);
+				});
+
+
+				describe("connect method", () => {
 					return false;
 				});
 
-				describe("info method", () => {
+				describe("disconnect method", () => {
 					return false;
 				});
 
-				describe("getErrorLogs method", () => {
+				describe("find method", () => {
 					return false;
 				});
+
+				describe("findOne method", () => {
+					return false;
+				});
+
+				describe("insertOne method", () => {
+					return false;
+				});
+
+				describe("deleteOneById method", () => {
+					return false;
+				});
+
 
 			});
 		});
