@@ -10,7 +10,7 @@
     module.exports = function () {
 		let cachedDb = "";
 		return {
-			"connect": function () {
+			"connect": function (connectionTarget = MONGO_DB) {
 				return new Promise((resolve, reject) => {
 					if (cachedDb) {
 						resolve(cachedDb);
@@ -19,7 +19,7 @@
 						"reconnectTries": 60,
 						"reconnectInterval": 1000
 					}).then((client) => {
-						cachedDb = client.db(MONGO_DB);
+						cachedDb = client.db(connectionTarget);
 						return resolve(cachedDb);
 					}).catch((err) => {
 						return reject(err);
