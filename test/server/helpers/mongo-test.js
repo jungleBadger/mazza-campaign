@@ -13,11 +13,17 @@
 		const createError = require("http-errors");
 
 		describe("Mongo helper package", () => {
-			context("Invalid instantiation", () => {
-			});
-
 			context("Valid instantiation", () => {
 				const mongoInstance = new Mongo();
+
+				beforeEach(() => {
+					mongoInstance.connect();
+				});
+
+				afterEach(() => {
+					mongoInstance.disconnect();
+				});
+
 				it("should export an object", function() {
 					assert.equal(typeof mongoInstance, "object");
 				});
@@ -50,8 +56,28 @@
 					assert.deepEqual(mongoInstance.ObjectId, ObjectId);
 				});
 
+				describe("connect method", () => {
+					it("should be resolved with a mongoDB client instance", function(done) {
+						mongoInstance.connect().then((instance) => {
+							assert.ok(instance);
+							assert.equal(typeof instance, "object");
+							done();
+						});
+					});
+
+					return false;
+				});
 
 				describe("connect method", () => {
+					it("should be resolved with a mongoDB client instance", function(done) {
+						mongoInstance.connect().then((instance) => {
+							console.log(instance);
+							assert.ok(instance);
+							assert.equal(typeof instance, "object");
+							done();
+						});
+					});
+
 					return false;
 				});
 
@@ -74,6 +100,7 @@
 				describe("deleteOneById method", () => {
 					return false;
 				});
+
 
 
 			});
