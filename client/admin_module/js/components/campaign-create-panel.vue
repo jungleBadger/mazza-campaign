@@ -1,15 +1,8 @@
 <template>
-	<transition
-		mode="out-in"
-		enter-active-class="animated fadeInDown"
-		leave-active-class="animated fadeOutUp">
-	>
-		<div>
-			affa
-			<font-awesome-icon :icon="spinner" spin></font-awesome-icon>
-		</div>
-	</transition>
-
+	<div class="test">
+		affa
+		<font-awesome-icon :icon="spinner" spin></font-awesome-icon>
+	</div>
 </template>
 
 <script type="text/javascript">

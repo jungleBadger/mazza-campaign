@@ -1,12 +1,7 @@
 <template>
-	<transition
-		mode="out-in"
-		enter-active-class="animated fadeInDown"
-		leave-active-class="animated fadeOutUp">
-		<div>
-			asdadsadas
-		</div>
-	</transition>
+	<div>
+		asdadsadas
+	</div>
 </template>
 
 <script type="text/javascript">

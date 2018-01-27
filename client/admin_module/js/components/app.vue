@@ -3,8 +3,14 @@
 		<app-header></app-header>
 		<app-sidemenu></app-sidemenu>
 		<div class="content">
-			<router-view class="view" />
+			<transition
+				enter-active-class="animated rotateInDownRight"
+				leave-active-class="animated rotateOutUpLeft">
+				<router-view class="view" />
+			</transition>
+
 		</div>
+
 	</div>
 </template>
 <script type="text/javascript">
