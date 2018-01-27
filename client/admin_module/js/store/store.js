@@ -6,7 +6,8 @@
 		"modules": {
 			"routes": require("./routes/module"),
 			"utilities": require("./utilities/module"),
-		}
+		},
+		"strict": process.env.NODE_ENV !== "production"
 	});
 
 }());
