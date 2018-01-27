@@ -96,6 +96,7 @@
 		"vinyl-source-stream": "^2.0.0",
 		"vue": "^2.5.13",
 		"vue-template-compiler": "^2.5.13",
+		"vue-multiselect": "^2.0.8",
 		"vueify": "^9.4.1",
 		"watchify": "^3.9.0",
 		"yargs": "^10.1.1"
