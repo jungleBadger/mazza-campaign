@@ -1,7 +1,8 @@
 <template>
-	<div class="test">
-		affa
-		<font-awesome-icon :icon="spinner" spin></font-awesome-icon>
+	<div id="createCampaign">
+		<div class="test">
+			<font-awesome-icon :icon="spinner" spin />
+		</div>
 	</div>
 </template>
 
@@ -9,7 +10,9 @@
     (function () {
         "use strict";
         const spinnerIcon = require("@fortawesome/fontawesome-pro-light/faSpinner");
-        module.exports = {
+		const i18nGetters = require("../store/i18n/mappers/mapGetters");
+
+		module.exports = {
             "name": "CampaignCreatePanel",
             "props": {},
             "data": function () {
@@ -18,7 +21,8 @@
 			"computed": {
 				spinner () {
 					return spinnerIcon;
-				}
+				},
+				...i18nGetters
 			},
             "components": {},
             "methods": {}

@@ -3,8 +3,8 @@
 
 	module.exports = {
 		"state": {
-			"activeView": "",
-			"views": []
+			"languages": [],
+			"selectedLanguage": ""
 		}
 	};
 }());

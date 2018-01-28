@@ -4,6 +4,13 @@
 			<a href="/admin" class="navbar-item">
 				<img data-v-96b41898="" src="https://bulma.io/images/bulma-logo.png" alt="Bulma: a modern CSS framework based on Flexbox" width="112" height="28">
 			</a>
+			<select v-model="selectedLanguage">
+				<option
+					v-for="language in languages"
+					:value="language">
+					{{language}}
+				</option>
+			</select>
 			<div
 				class="navbar-burger burger"
 				@click="toggleMenu"
@@ -25,9 +32,12 @@
 					@click="toggleMenu"
 					v-for="(groupRoutes, group) in groupedRoutes">
 					<template v-if="groupRoutes.length">
-						<p class="menu-label">
-							{{group}}
-						</p>
+						<i18n
+							:path="`appRoutes.groups.${group}`"
+							class="menu-label"
+							tag="p"
+							:locale="selectedLanguage"
+						/>
 					</template>
 					<router-link
 						v-for="route in groupRoutes"
@@ -35,10 +45,12 @@
 						:key="route.name"
 						class="navbar-link"
 						:class="{'is-active': selectedRoute === route.name}">
-						<font-awesome-icon :icon="route.icon" />
-						<span class="route-name">
-							{{route.displayName}}
-						</span>
+						<font-awesome-icon :icon="route.meta.icon" />
+						<i18n
+							:path="`appRoutes.${route.name}`"
+							class="route-name"
+							:locale="selectedLanguage"
+						/>
 					</router-link>
 				</div>
 			</div>
@@ -62,6 +74,7 @@
 <script type="text/javascript">
 	(function () {
 		"use strict";
+
 		module.exports = {
 			"name": "AppHeader",
 			"props": {},
@@ -71,24 +84,53 @@
 				}
 			},
 			"computed": {
-				"groupedRoutes": function () {
-					return this.$store.getters["routes/getGroupedRoutes"];
+				groupedRoutes() {
+					let routesDictionary = {};
+					this.$router.options.routes.forEach((route) => {
+						if (!route.default) {
+							if (route.meta && route.meta.group) {
+								if (routesDictionary[route.meta.group]) {
+									routesDictionary[route.metagroup].push(route);
+								} else {
+									routesDictionary[route.meta.group] = [route];
+								}
+							} else {
+								if (routesDictionary.other) {
+									routesDictionary.other.push(route);
+								} else {
+									routesDictionary.other = [route];
+								}
+							}
+						}
+					});
+					return routesDictionary;
 				},
-				"selectedRoute": function () {
+				selectedRoute() {
 					return this.$route.name;
 				},
-				"menuIcon": function () {
+				menuIcon() {
 					return require("@fortawesome/fontawesome-pro-light/faBars");
 				},
-				"logoutIcon": function () {
+				logoutIcon() {
 					return require("@fortawesome/fontawesome-pro-light/faSignOut");
+				},
+				languages() {
+					return this.$store.getters["i18n/languages"];
+				},
+				"selectedLanguage": {
+					get() {
+						return this.$store.getters["i18n/selectedLanguage"];
+					},
+					set(value) {
+						return this.$store.commit("i18n/selectLanguage", value);
+					}
 				}
 			},
 			"components": {},
 			"methods": {
-				"toggleMenu": function () {
+				toggleMenu() {
 					this.menuOpen = !this.menuOpen;
-				}
+				},
 			}
 		};
 	}());

@@ -4,8 +4,8 @@
 	const Vuex = require("vuex");
 	module.exports = new Vuex.Store({
 		"modules": {
-			"routes": require("./routes/module"),
-			"utilities": require("./utilities/module"),
+			"i18n": require("./i18n/module"),
+			"utilities": require("./utilities/module")
 		},
 		"strict": process.env.NODE_ENV !== "production"
 	});
