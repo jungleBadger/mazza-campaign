@@ -173,7 +173,7 @@
 		return methods.bundleJS(done);
 	});
 
-	let styles = function () {
+	gulp.task("css", function () {
 		modulePath = currentContext ? currentContext : ["client/" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
 		if (isProd) {
 			fse.remove(modulePath + "/dist/css/style.css.map");
@@ -191,11 +191,6 @@
 			.pipe(cond(isProd, postcss(cssUglifier)))
 			.pipe(cond(!isProd, sourcemaps.write("./")))
 			.pipe(gulp.dest(modulePath + "/dist/css/"));
-	};
-
-	gulp.task("css", function (done) {
-		styles();
-		done();
 	});
 
 
@@ -205,7 +200,7 @@
 			return gulp.watch([
 				modulePath + "/css/*.css",
 				modulePath + "/css/*.scss"
-			], styles);
+			], gulp.parallel("css"));
 		} else {
 			done();
 		}
