@@ -1,16 +1,16 @@
 <template>
 	<div id="mazza-app">
-		<app-header></app-header>
-		<app-sidemenu></app-sidemenu>
+		<app-header />
+		<app-sidemenu />
 		<div class="content">
 			<transition
-				enter-active-class="animated rotateInDownRight"
-				leave-active-class="animated rotateOutUpLeft">
+				mode="out-in"
+				:duration="500"
+				enter-active-class="animated fadeInRight"
+				leave-active-class="animated fadeOutLeft">
 				<router-view class="view" />
 			</transition>
-
 		</div>
-
 	</div>
 </template>
 <script type="text/javascript">
@@ -28,12 +28,15 @@
 				"AppHeader": require("./app-header.vue"),
 				"AppSidemenu": require("./app-sidemenu.vue")
 			},
-			"beforeMount": function () {
-				this.$store.commit("routes/initRoutes", this.$router.options.routes);
-			},
 			"methods": {
 			},
 			"computed": {
+			},
+			"beforeCreate": function () {
+				this.$store.commit("i18n/setLanguages", {
+					"availableLanguages": Object.keys(this.$i18n.messages),
+					"selectedLanguage": this.$i18n.locale
+				});
 			}
 		};
 	}());

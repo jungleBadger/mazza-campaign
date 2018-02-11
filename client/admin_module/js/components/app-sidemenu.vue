@@ -7,9 +7,12 @@
 			class="menu-item"
 			v-for="(groupRoutes, group) in groupedRoutes">
 			<template v-if="groupRoutes.length">
-				<p class="menu-label">
-					{{group}}
-				</p>
+				<i18n
+					:path="`appRoutes.groups.${group}`"
+					class="menu-label"
+					tag="p"
+					:locale="selectedLanguage"
+				/>
 			</template>
 			<div class="menu-list">
 				<router-link
@@ -17,8 +20,13 @@
 					:to="route.path"
 					:key="route.name"
 					:class="{'is-active': selectedRoute === route.name}">
-					<font-awesome-icon :icon="route.icon" />
-					<span class="route-name">{{route.displayName}}</span>
+					<font-awesome-icon :icon="route.meta.icon" />
+
+					<i18n
+						:path="`appRoutes.${route.name}`"
+						class="route-name"
+						:locale="selectedLanguage"
+					/>
 				</router-link>
 			</div>
 		</div>
@@ -37,22 +45,44 @@
 <script type="text/javascript">
     (function () {
         "use strict";
-        module.exports = {
+
+		const i18nGetters = require("../store/i18n/mappers/mapGetters");
+
+		module.exports = {
             "name": "AppSidemenu",
             "props": {},
             "data": function () {
                 return {}
             },
 			"computed": {
-				"groupedRoutes": function () {
-					return this.$store.getters["routes/getGroupedRoutes"];
+				groupedRoutes() {
+					let routesDictionary = {};
+					this.$router.options.routes.forEach((route) => {
+						if (!route.default) {
+							if (route.meta && route.meta.group) {
+								if (routesDictionary[route.meta.group]) {
+									routesDictionary[route.metagroup].push(route);
+								} else {
+									routesDictionary[route.meta.group] = [route];
+								}
+							} else {
+								if (routesDictionary.other) {
+									routesDictionary.other.push(route);
+								} else {
+									routesDictionary.other = [route];
+								}
+							}
+						}
+					});
+					return routesDictionary;
 				},
-				"selectedRoute": function () {
+				selectedRoute() {
 					return this.$route.name;
 				},
-				"logoutIcon": function () {
+				logoutIcon() {
 					return require("@fortawesome/fontawesome-pro-light/faSignOut");
-				}
+				},
+				...i18nGetters
 			},
             "components": {},
             "methods": {}
