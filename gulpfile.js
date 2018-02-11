@@ -48,26 +48,32 @@
 	process.env.NODE_ENV = argv.prod ? "production" : "development";
 	isProd = process.env.NODE_ENV === "production";
 	let methods = {
-		"bundleJS": function () {
+		"errorHandler": function errorHandler(module, error, stack) {
+			log(colors.red("ERROR FOUND BUILDING THIS ARTIFACT:"), colors.yellow(module));
+			log(stack);
+			return error;
+		},
+		"bundleJS": function bundleJS(done = (() => false)) {
 			if (isProd) {
-				fse.remove(path.join(modulePath, "dist/js/bundle.js.map"));
+				fse.remove(modulePath + "dist/js/bundle.js.map");
 			}
-
 			browserifyInstance.bundle()
 				.on("error", function (err) {
 					log(err);
 				})
-				.pipe(source(path.join(modulePath, "js/main.js")))
+				.pipe(source(modulePath + "/js/main.js"))
 				.pipe(cond(!isProd, plumber()))
 				.pipe(buffer())
 				.pipe(rename("bundle.js"))
 				.pipe(cond(isProd, uglify()))
 				.pipe(cond(!isProd, sourcemaps.init({"loadMaps": true})))
 				.pipe(cond(!isProd, sourcemaps.write("./")))
-				.pipe(gulp.dest(path.join(modulePath, "dist/js/")));
+				.pipe(gulp.dest(modulePath + "/dist/js/"));
+
+			done();
 			return isProd ? log("FINISHED PRODUCTION BUILD") : log("FINISHED DEV BUILD");
 		},
-		"createFiles": function (files) {
+		"createFiles": function createFiles(files) {
 			return files.map(function (file) {
 				return new Promise(function (resolve, reject) {
 					fse.outputFile(file.path, file.content || "", "utf-8", function (err) {
@@ -109,38 +115,45 @@
 		}
 	};
 
-	gulp.task("build-all", ["lint:server"], function () {
-		fs.readdir("./client", function (err, files) {
-			files.forEach(function (file) {
-				let stat = fs.statSync(path.join("client"));
-				if (stat.isDirectory() && file.indexOf("_module") > -1) {
-					let module = file.split("_")[0];
-					childProcess.exec(["gulp build -m", module, isProd ? "--prod" : ""].join(" "), function (error, stdout) {
-						log([colors.blue("MODULE:"), module, colors.blue("BUILD TYPE:"), process.env.NODE_ENV].join(" "));
-						if (error) {
-							methods.errorHandler(module, error, stdout);
-						} else {
-							log(stdout);
-							log(colors.green("Module built successfully"));
-						}
-					});
-				}
-			});
-		});
+	gulp.task("lint", function () {
+		modulePath = currentContext ? currentContext : ["client" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
+		return gulp.src([[modulePath, "/js/**/*.js"].join(""), [modulePath, "/js/**/*.vue"].join("")])
+			.pipe(eslint())
+			.pipe(eslint.format())
+			.pipe(eslint.failAfterError());
 	});
 
-	gulp.task("build", function () {
-		if (argv.w || argv.watch) {
-			runSequence("lint", "js", "css", "watch-css", "generate-sw");
-		} else {
-			runSequence("lint", "js", "css", "generate-sw");
-		}
+	gulp.task("lint:server", function () {
+		modulePath = currentContext ? currentContext : ["client" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
+		return gulp.src(["./app.js", "./server/**/*.js"])
+			.pipe(eslint())
+			.pipe(eslint.format())
+			.pipe(eslint.failAfterError())
+			.on("error", function (error) {
+				methods.errorHandler("lint:server", error, "Check the logs to see where it fails");
+			})
 	});
 
-	gulp.task("js", function () {
-		modulePath = currentContext ? currentContext : path.join("client", (argv.module || argv.m || currentContext || "main") + "_module");
+	gulp.task("generate-sw", function(done) {
+		modulePath = currentContext ? currentContext : ["client/" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
+		swPrecache.write("./client/" + "service-worker.js", {
+			"cacheId": packageJson.name,
+			"logger": log,
+			"handleFetch": isProd,
+			"staticFileGlobs": [
+				"./client/etc/libs/**/*.css",
+				"./client/etc/libs/**/*.js",
+				"./client/**/dist/css/libs.css"
+			],
+			"stripPrefix": "./client"
+		}, done);
+	});
+
+
+	gulp.task("js", function (done) {
+		modulePath = currentContext ? currentContext : ["client/" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
 		browserifyInstance = browserify({
-			"entries": path.join(modulePath, "js/main.js"),
+			"entries": modulePath + "/js/main.js",
 			"noParse": ["vue.js"],
 			"plugin": argv.w || argv.watch ? [watchify] : [],
 			"cache": {},
@@ -152,75 +165,89 @@
 		})
 			.transform(babelify)
 			.transform(vueify)
-			.on("update", methods.bundleJS);
-		return methods.bundleJS();
+			.on("update", function () {
+				methods.bundleJS(done);
+			});
+
+		return methods.bundleJS(done);
 	});
 
-	gulp.task("css", function () {
-		modulePath = currentContext ? currentContext : path.join("client", (argv.module || argv.m || currentContext || "main") + "_module");
+	let styles = function () {
+		modulePath = currentContext ? currentContext : ["client/" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
 		if (isProd) {
-			fse.remove(path.join(modulePath, "/dist/css/style.css.map"));
+			fse.remove(modulePath + "/dist/css/style.css.map");
 		}
-		return gulp.src([path.join(modulePath, "/css/*.css"), path.join(modulePath, "/css/*.scss")])
+		return gulp.src([
+			modulePath + "/css/*.css",
+			modulePath + "/css/*.scss"
+		])
 			.pipe(plumber())
 			.pipe(postcss([
 				cssnext({})
 			]))
 			.pipe(cond(!isProd, sourcemaps.init({"loadMaps": true})))
-			.pipe(sass().on('error', sass.logError))
+			.pipe(cache(sass().on("error", sass.logError)))
 			.pipe(cond(isProd, postcss(cssUglifier)))
 			.pipe(cond(!isProd, sourcemaps.write("./")))
-			.pipe(gulp.dest(path.join(modulePath, "/dist/css/")))
+			.pipe(gulp.dest(modulePath + "/dist/css/"));
+	};
+
+	gulp.task("css", function (done) {
+		styles();
+		done();
 	});
 
-	gulp.task("watch-css", function () {
-		modulePath = currentContext ? currentContext : path.join("client", (argv.module || argv.m || currentContext || "main") + "_module");
-		return gulp.watch([path.join(modulePath, "/css/*.css"), path.join(modulePath, "/css/*.scss")], ['css']);
+
+	gulp.task("watch-css", function (done) {
+		modulePath = currentContext ? currentContext : ["client/" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
+		if (argv.w || argv.watch) {
+			return gulp.watch([
+				modulePath + "/css/*.css",
+				modulePath + "/css/*.scss"
+			], styles);
+		} else {
+			done();
+		}
 	});
 
-	gulp.task("lint", function () {
-		modulePath = currentContext ? currentContext : path.join("client", (argv.module || argv.m || currentContext || "main") + "_module");
-		return gulp.src([[modulePath, "/js/**/*.js"].join(""), [modulePath, "/js/**/*.vue"].join("")])
-			.pipe(eslint())
-			.pipe(eslint.format())
-			.pipe(eslint.failAfterError());
-	});
+	gulp.task("build", gulp.parallel("lint", "js", "css", "watch-css", "generate-sw"));
 
-	gulp.task("lint:server", function () {
-		return gulp.src(["./app.js", "./server/**/*.js"])
-			.pipe(eslint())
-			.pipe(eslint.format())
-			.pipe(eslint.failAfterError())
-			.on("error", function (error) {
-				methods.errorHandler("lint:server", error, "Check the logs to see where it fails");
-			});
-	});
-
-	gulp.task("watch", function() {
-		let modulePath = path.join("./client/", (argv.module || argv.m || currentContext || "main") + "_module");
-		currentContext = modulePath;
-		gulp.watch([modulePath + "/js/**/*.js", modulePath + "/js/*.js", modulePath + "/css/**/*.css", modulePath + "/js/components/*.vue"], ["build"]);
-	});
+	gulp.task("build-all", gulp.parallel("lint:server", function iterateOverModules(done) {
+		cache.clearAll();
+		modulePath = currentContext ? currentContext : ["client/" + (argv.module || argv.m || currentContext || "main") + "_module"].join();
+		fs.readdir("./client", function (err, files) {
+			Promise.all(files.map(file => {
+				return new Promise((resolve, reject) => {
+					let stat = fs.statSync(path.join("client"));
+					if (stat.isDirectory() && file.indexOf("_module") > -1) {
+						let module = file.split("_")[0];
+						childProcess.exec(["gulp build -m", module, isProd ? "--prod" : ""].join(" "), function (error, stdout) {
+							log([colors.blue("MODULE:"), module, colors.blue("BUILD TYPE:"), process.env.NODE_ENV].join(" "));
+							if (error) {
+								log(error);
+								reject(methods.errorHandler(module, error, stdout));
+							} else {
+								log(stdout);
+								log(colors.green("Module built successfully"));
+								resolve();
+							}
+						});
+					} else {
+						resolve();
+					}
+				});
+			}))
+				.then(result => done())
+				.catch(err => done(err));
+		});
+	}));
 
 	gulp.task("images", function () {
 		return gulp.src("public/images/disclaimer/*.+(png|jpg|jpeg|gif|svg)").pipe(cache(imagemin())).pipe(gulp.dest("public/images/disclaimer/dist"));
 	});
 
-	gulp.task("generate-sw", function(callback) {
-		swPrecache.write(path.join("./client", "service-worker.js"), {
-			"cacheId": packageJson.name,
-			"logger": log,
-			"handleFetch": isProd,
-			"staticFileGlobs": [
-				"./client/etc/libs/**/*.css",
-				"./client/etc/libs/**/*.js",
-				"./client/**/dist/css/libs.css"
-			],
-			"stripPrefix": "./client"
-		}, callback);
-	});
 
-	gulp.task("create-module", function () {
+	gulp.task("create-module", function (done) {
 		let module = argv.m || argv.module;
 		let override = argv.o || argv.override;
 		if (!module) {
@@ -248,8 +275,9 @@
 					"content": methods.jsTemplate()
 				}])).then(function (result) {
 					log(result);
+					done()
 				}).catch(function (err) {
-					log(err);
+					done(err);
 				});
 			}
 		}
@@ -260,7 +288,6 @@
 		 params to doc
 		 @ watch, alias w -> #build
 		 @ prod -> #env
-		 @ bluemix, alias bx -> #generate-sw
 		 @ module, alias m -> #build
 		 @ override, alias o -> #create-module
 		 */
