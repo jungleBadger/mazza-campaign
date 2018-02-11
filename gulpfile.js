@@ -51,7 +51,8 @@
 		"errorHandler": function errorHandler(module, error, stack) {
 			log(colors.red("ERROR FOUND BUILDING THIS ARTIFACT:"), colors.yellow(module));
 			log(stack);
-			return error;
+			log(error);
+			process.exit(1);
 		},
 		"bundleJS": function bundleJS(done = (() => false)) {
 			if (isProd) {
