@@ -9,7 +9,6 @@
 	const argv = require("yargs").argv;
 	const browserify = require("browserify");
 	const cond = require("gulp-cond");
-	const gutil = require("gulp-util");
 	const fs = require("fs");
 	const fse = require("fs-extra");
 	const uglify = require("gulp-uglify");
@@ -31,18 +30,16 @@
 	const plumber = require("gulp-plumber");
 	const path = require("path");
 	const cssnext = require("postcss-cssnext");
-	const fetch = require("node-fetch");
+	const log = require("fancy-log");
+	const colors = require("ansi-colors");
 	const cssUglifier = [
 		cssnano()
 	];
 	const childProcess = require("child_process");
-	const APP_DEPS = ["bulma", "animate.css", "izitoast", "flatpickr"];
-	const WEBHOOK_ENDPOINT = process.env.WEBHOOK_ENDPOINT || argv.slack;
 	let currentContext = "";
 	let browserifyInstance;
 	let modulePath;
 	let isProd;
-	let isBluemix = argv.bluemix || argv.bx;
 
 	vueify.compiler.applyConfig({
 		"postcss": [cssnext()]
@@ -51,52 +48,6 @@
 	process.env.NODE_ENV = argv.prod ? "production" : "development";
 	isProd = process.env.NODE_ENV === "production";
 	let methods = {
-		"sendSlackMessage": function (payload) {
-			return new Promise(function (resolve, reject) {
-				if (WEBHOOK_ENDPOINT) {
-					fetch(WEBHOOK_ENDPOINT, {
-						"method": "POST",
-						"body": JSON.stringify(payload),
-						"headers": {
-							"Content-Type": "application/json"
-						},
-					}).then(response => resolve(response))
-						.catch(error => reject(error));
-				} else {
-					reject("Webhook ID not available");
-				}
-			});
-		},
-		"errorHandler": function (module, error, stack) {
-			gutil.log(gutil.colors.red("ERROR FOUND BUILDING THIS ARTIFACT:"), gutil.colors.yellow(module));
-			gutil.log(error);
-			gutil.log(stack);
-			if (isBluemix) {
-				let log_url;
-				if (isProd) {
-					log_url = "https://console.bluemix.net/devops/pipelines/8828557f-bb39-4f96-9d69-2c015ebfabb0?env_id=ibm%3Ayp%3Aus-south";
-				} else {
-					log_url = "https://console.bluemix.net/devops/pipelines/51d76df7-aed9-4374-8e0c-be1a6c8924df?env_id=ibm%3Ayp%3Aus-south";
-				}
-				methods.sendSlackMessage({
-					"username": "BUILD FAILING",
-					"icon_emoji": ":interrobang:",
-					"text": [
-						"*ENVIRONMENT*: ", process.env.NODE_ENV, "\n",
-						error, "\n",
-						"Check the <", log_url, "|logs>"
-					].join("")
-				}).then(function () {
-					gutil.log("Webhook sent");
-					return process.exit(1);
-				}).catch(function(error) {
-					gutil.log(error);
-					return process.exit(1);
-				});
-			} else {
-				return process.exit(1);
-			}
-		},
 		"bundleJS": function () {
 			if (isProd) {
 				fse.remove(path.join(modulePath, "dist/js/bundle.js.map"));
@@ -104,7 +55,7 @@
 
 			browserifyInstance.bundle()
 				.on("error", function (err) {
-					gutil.log(err);
+					log(err);
 				})
 				.pipe(source(path.join(modulePath, "js/main.js")))
 				.pipe(cond(!isProd, plumber()))
@@ -114,7 +65,7 @@
 				.pipe(cond(!isProd, sourcemaps.init({"loadMaps": true})))
 				.pipe(cond(!isProd, sourcemaps.write("./")))
 				.pipe(gulp.dest(path.join(modulePath, "dist/js/")));
-			return isProd ? gutil.log("FINISHED PRODUCTION BUILD") : gutil.log("FINISHED DEV BUILD");
+			return isProd ? log("FINISHED PRODUCTION BUILD") : log("FINISHED DEV BUILD");
 		},
 		"createFiles": function (files) {
 			return files.map(function (file) {
@@ -127,11 +78,6 @@
 						}
 					});
 				});
-			});
-		},
-		"setCFManifest": function () {
-			return fse.copy(path.join("root", isProd ? "manifest.prod.yml" : "manifest.dev.yml"), "manifest.yml", {
-				"overwrite": true
 			});
 		},
 		"htmlTemplate": function (module, title) {
@@ -163,19 +109,19 @@
 		}
 	};
 
-	gulp.task("build-all", ["lint:server", "set-manifest"], function () {
+	gulp.task("build-all", ["lint:server"], function () {
 		fs.readdir("./client", function (err, files) {
 			files.forEach(function (file) {
 				let stat = fs.statSync(path.join("client"));
 				if (stat.isDirectory() && file.indexOf("_module") > -1) {
 					let module = file.split("_")[0];
 					childProcess.exec(["gulp build -m", module, isProd ? "--prod" : ""].join(" "), function (error, stdout) {
-						gutil.log([gutil.colors.blue("MODULE:"), module, gutil.colors.blue("BUILD TYPE:"), process.env.NODE_ENV].join(" "));
+						log([colors.blue("MODULE:"), module, colors.blue("BUILD TYPE:"), process.env.NODE_ENV].join(" "));
 						if (error) {
 							methods.errorHandler(module, error, stdout);
 						} else {
-							gutil.log(stdout);
-							gutil.log(gutil.colors.green("Module built successfully"));
+							log(stdout);
+							log(colors.green("Module built successfully"));
 						}
 					});
 				}
@@ -263,102 +209,22 @@
 	gulp.task("generate-sw", function(callback) {
 		swPrecache.write(path.join("./client", "service-worker.js"), {
 			"cacheId": packageJson.name,
-			"logger": gutil.log,
+			"logger": log,
 			"handleFetch": isProd,
 			"staticFileGlobs": [
-				"./client/etc/libs/bulma/css/bulma.css",
-				"./client/etc/libs/bulma/css/bulma.css.map",
-				"./client/etc/libs/fontawesome/*.js",
-				"./client/etc/libs/animate.css/animate.css",
-				"./client/etc/libs/animate.css/animate.min.css",
-				"./client/etc/libs/izitoast/dist/css/*.css",
-				"./client/etc/libs/izitoast/dist/js/*.js",
-				"./etc/libs/vue-multiselect/vue-multiselect.min.css",
-				"./client/etc/assets/svg/loading.svg",
+				"./client/etc/libs/**/*.css",
+				"./client/etc/libs/**/*.js",
 				"./client/**/dist/css/libs.css"
 			],
 			"stripPrefix": "./client"
 		}, callback);
 	});
 
-	gulp.task("load-deps", function(done) {
-		Promise.all(APP_DEPS.map((dependecy) => {
-			return new Promise((resolve, reject) => {
-				const NPM_LIB_PATH = path.join("client/etc/libs", dependecy);
-				gutil.log(gutil.colors.green(`PREPARING TO INSTALL: ${dependecy}`));
-				if (fse.pathExistsSync(NPM_LIB_PATH)) {
-					fse.copy(
-						path.join("node_modules", dependecy),
-						NPM_LIB_PATH,
-						(err) => {
-							if (err) {
-								reject(err);
-								reject([gutil.colors.red("ERR LOADING DEP:"), dependecy].join(" "));
-							} else {
-								resolve(dependecy);
-							}
-						}
-					);
-				} else {
-					childProcess.exec(["npm install", dependecy].join(" "), function (error, stdout) {
-						gutil.log([gutil.colors.blue("NPM:"), stdout].join(" "));
-						fse.copy(
-							path.join("node_modules", dependecy),
-							NPM_LIB_PATH,
-							(err) => {
-								if (err) {
-									reject(err);
-									reject([gutil.colors.red("ERR LOADING DEP:"), dependecy].join(" "));
-								} else {
-									resolve(dependecy);
-								}
-							}
-						);
-					});
-				}
-			});
-
-		})).then(() => {
-			done();
-		}).catch((err) => {
-			gutil.log(err);
-		});
-	});
-
-
-	gulp.task("set-manifest", function (done) {
-		if (isBluemix) {
-			methods.setCFManifest().then(function () {
-				done();
-			}).catch(function (error) {
-				methods.errorHandler("set-manifest", error, "Check the logs to see where it fails");
-			});
-		} else {
-			done();
-		}
-	});
-
-	gulp.task("notifyBuildSuccess", function () {
-		methods.sendSlackMessage({
-			"username": "BUILD SUCCESS",
-			"text": "ENVIRONMENT: *" + process.env.NODE_ENV + "* finished building and preparing to deploy",
-			"icon_emoji": ":cat2:"
-		})
-	});
-
-	gulp.task("notifyDeploySuccess", function () {
-		methods.sendSlackMessage({
-			"username": "DEPLOY SUCCESS",
-			"text": "ENVIRONMENT: *" + process.env.NODE_ENV + "* finished deploy to Bluemix",
-			"icon_emoji": ":bluemix:"
-		})
-	});
-
 	gulp.task("create-module", function () {
 		let module = argv.m || argv.module;
 		let override = argv.o || argv.override;
 		if (!module) {
-			gutil.log("can not proceed without module parameter");
+			log("can not proceed without module parameter");
 		} else {
 			let targetPath = path.join("./client", module + "_module/");
 			let cssPath = path.join(targetPath, "css");
@@ -366,7 +232,7 @@
 			let componentPath = path.join(targetPath, "js", "components");
 
 			if (fse.pathExistsSync(targetPath) && !override) {
-				gutil.log("Module already exists. Run with -o flag to override");
+				log("Module already exists. Run with -o flag to override");
 			} else {
 				Promise.all(methods.createFiles([{
 					"path": path.join(targetPath, "index.html"),
@@ -381,9 +247,9 @@
 					"path": path.join(componentPath, "app.vue"),
 					"content": methods.jsTemplate()
 				}])).then(function (result) {
-					gutil.log(result);
+					log(result);
 				}).catch(function (err) {
-					gutil.log(err);
+					log(err);
 				});
 			}
 		}
@@ -399,22 +265,20 @@
 		 @ override, alias o -> #create-module
 		 */
 
-		gutil.log(gutil.colors.green("Task: build-all"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: build"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: lint"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: lint:server"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: js"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: css"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: generate-sw"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: set-manifest"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: create-module"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: images"), gutil.colors.magenta('#'));
-		gutil.log(gutil.colors.green("Task: load-deps"), gutil.colors.magenta('#'));
+		log(colors.green("Task: build-all"), colors.magenta('#'));
+		log(colors.green("Task: build"), colors.magenta('#'));
+		log(colors.green("Task: lint"), colors.magenta('#'));
+		log(colors.green("Task: lint:server"), colors.magenta('#'));
+		log(colors.green("Task: js"), colors.magenta('#'));
+		log(colors.green("Task: css"), colors.magenta('#'));
+		log(colors.green("Task: generate-sw"), colors.magenta('#'));
+		log(colors.green("Task: create-module"), colors.magenta('#'));
+		log(colors.green("Task: images"), colors.magenta('#'));
 
 	});
 
 	process.on("exit", function(code) {
-		gutil.log("About to exit with code:", code);
+		log("About to exit with code:", code);
 	});
 
 }());
