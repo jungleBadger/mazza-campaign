@@ -1,6 +1,6 @@
 (function () {
 	"use strict";
 
-	module.exports = require("Vuex").mapGetters("i18n", ["languages", "selectedLanguage"]);
+	module.exports = require("vuex").mapGetters("i18n", ["languages", "selectedLanguage"]);
 
 }());
